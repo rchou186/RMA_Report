@@ -11,6 +11,8 @@ import pandas as pd
 from IPQC_Rebuild import ipqc_rebuild
 from TEST_Build import test_build
 
+program_version = "22.0314.01"
+
 if __name__ == '__main__':
 
     mydb = mysql.connector.connect(
@@ -22,7 +24,7 @@ if __name__ == '__main__':
     mycursor = mydb.cursor()
 
     # input the SN of an RMA battery
-    serial_no = input("Please Enter the SN of an RMA battery:")
+    serial_no = input(f"(Version {program_version})  Please Enter the SN of an RMA battery: ")
 
     # search the SN_Table to get the IPQC number
     sql = f"SELECT IPQC_No, Mileage, MIS FROM SN_Table WHERE Serial_no = '{serial_no}'"

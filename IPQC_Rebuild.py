@@ -50,9 +50,9 @@ def ipqc_rebuild(IPQC):
         if not os.path.exists("/Volumes/Battery Test Data"):
             os.system("open smb://Richard:abcd1234@TBTS-SERVER/'Battery Test Data'")
             time.sleep(5)       # sleep 5 second for disk mount
-        Tnumber_path = "/Volumes/Battery Test Data/Grading Test/"
+        Tnumber_path = "/Volumes/Battery Test Data/Grading Test"
     elif platform.system() == 'Windows':    # Windows
-        Tnumber_path = "Z:/Battery Test Data/Grading Test/"
+        Tnumber_path = "Z:/Grading Test"
 
     # find the orinigal module csv and copy to destination folder
     for i in range(0, len(IPQC_df)):
@@ -110,7 +110,7 @@ def ipqc_rebuild(IPQC):
     # generate charts, seperate by Phase
     fig = px.line(df_all, x='Time', y='Voltage', color='Module', facet_col='Phase', title=IPQC+' DCD Chart')
     fig.update_xaxes(tickformat='%M:%S')
-    fig.show()
+    #fig.show()
     fig.write_html(f"{current_path}/{IPQC}_DCD.html")
 
     # create bar graph chart of CHR_Wh, DIS_Wh and Ratio_Wh
@@ -127,7 +127,7 @@ def ipqc_rebuild(IPQC):
     fig_bar.update_xaxes(title="Module")
     fig_bar.update_yaxes(title='Wh', secondary_y=False)
     fig_bar.update_yaxes(title='DISWh/CHRWh', secondary_y=True, range=[0.5, 1.0])
-    fig_bar.show()
+    #fig_bar.show()
     fig_bar.write_html(f"{current_path}/{IPQC}_Wh.html")
 
 
