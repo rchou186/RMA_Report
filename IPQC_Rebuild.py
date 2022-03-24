@@ -33,14 +33,14 @@ def ipqc_rebuild(IPQC):
     mydb.close()
 
     # create IPQC folder for CSV files, which under the current working path
-    print("Create folder: {0:s}".format(IPQC))
+    print(f"\nCreate folder: {IPQC} ---> ", end='')
     os.makedirs(IPQC, exist_ok=True)
 
     # get the current running path
     current_path = os.getcwd()
     
     # save IPQC table
-    print("Save Table: {0:s}.xlsx".format(IPQC))
+    print(f"Save Table: {IPQC}.xlsx ---> ".format(IPQC), end='')
     IPQC_xlsx = IPQC + '.xlsx'
     #IPQC_file = current_path / IPQC / IPQC_xlsx
     IPQC_df.to_excel(f"{current_path}/{IPQC_xlsx}", index=False, sheet_name='Table')
@@ -50,9 +50,9 @@ def ipqc_rebuild(IPQC):
         if not os.path.exists("/Volumes/Battery Test Data"):
             os.system("open smb://Richard:abcd1234@TBTS-SERVER/'Battery Test Data'")
             time.sleep(5)       # sleep 5 second for disk mount
-        Tnumber_path = "/Volumes/Battery Test Data/Grading Test"
+        Tnumber_path = "/Volumes/Battery Test Data/Grading Test/"
     elif platform.system() == 'Windows':    # Windows
-        Tnumber_path = "Z:/Grading Test"
+        Tnumber_path = "Z:/Battery Test Data/Grading Test/"
 
     # find the orinigal module csv and copy to destination folder
     for i in range(0, len(IPQC_df)):
@@ -100,7 +100,7 @@ def ipqc_rebuild(IPQC):
         df_all = pd.concat([df_all, df])
 
     # creat DCD charts
-    print(f"Create DCD charts: {IPQC}_DCD.html")
+    print(f"Create DCD charts: {IPQC}_DCD.html ---> ", end='')
     # change phase name
     df_all.loc[df_all.Phase == 0, 'Phase'] = 'DIS0'
     df_all.loc[df_all.Phase == 2, 'Phase'] = 'CHARGE'
@@ -110,7 +110,7 @@ def ipqc_rebuild(IPQC):
     # generate charts, seperate by Phase
     fig = px.line(df_all, x='Time', y='Voltage', color='Module', facet_col='Phase', title=IPQC+' DCD Chart')
     fig.update_xaxes(tickformat='%M:%S')
-    #fig.show()
+    fig.show()
     fig.write_html(f"{current_path}/{IPQC}_DCD.html")
 
     # create bar graph chart of CHR_Wh, DIS_Wh and Ratio_Wh
@@ -127,9 +127,10 @@ def ipqc_rebuild(IPQC):
     fig_bar.update_xaxes(title="Module")
     fig_bar.update_yaxes(title='Wh', secondary_y=False)
     fig_bar.update_yaxes(title='DISWh/CHRWh', secondary_y=True, range=[0.5, 1.0])
-    #fig_bar.show()
+    fig_bar.show()
     fig_bar.write_html(f"{current_path}/{IPQC}_Wh.html")
 
+    return(IPQC_df, df_all)
 
 if __name__ == "__main__":
     IPQC = input("Please input IPQC number:")

@@ -32,14 +32,14 @@ def test_build(TEST):
     mydb.close()
 
     # create IPQC folder for CSV files, which under the current working path
-    print("Create folder: {0:s}".format(TEST))
+    print(f"\nCreate folder: {TEST} ---> ", end='')
     os.makedirs(TEST, exist_ok=True)
 
     # get the current running path
     current_path = os.getcwd()
     
     # save IPQC table
-    print("Save Table: {0:s}.xlsx".format(TEST))
+    print(f"Save Table: {TEST}.xlsx ---> ", end='')
     TEST_xlsx = TEST + '.xlsx'
     #IPQC_file = current_path / IPQC / IPQC_xlsx
     TEST_df.to_excel(f"{current_path}/{TEST_xlsx}", index=False, sheet_name='Table')
@@ -49,9 +49,9 @@ def test_build(TEST):
         if not os.path.exists("/Volumes/Battery Test Data"):
             os.system("open smb://Richard:abcd1234@TBTS-SERVER/'Battery Test Data'")
             time.sleep(5)       # sleep 5 second for disk mount
-        Tnumber_path = "/Volumes/Battery Test Data/Grading Test"
+        Tnumber_path = "/Volumes/Battery Test Data/Grading Test/"
     elif platform.system() == 'Windows':    # Windows
-        Tnumber_path = "Z:/Grading Test"
+        Tnumber_path = "Z:/Battery Test Data/Grading Test/"
 
     # find the orinigal module csv and copy to destination folder
     for i in range(0, len(TEST_df)):
@@ -76,30 +76,31 @@ def test_build(TEST):
         df.columns = ['Time', 'Voltage', 'Current', 'Ah', 'WH', 'Temp', 'Phase', 'DCIR', 'VMOS', 'VDelta', 'TempMOS']
 
         # remove last few rows of phase goes back to 0
-        if (df.iloc[-4]['Phase'] != 0):
-            if (df.iloc[-3]['Phase'] == 0):
-                df.drop(df.tail(3).index, inplace=True)
-            elif (df.iloc[-2]['Phase'] == 0):
-                df.drop(df.tail(2).index, inplace=True)
-            elif (df.iloc[-1]['Phase'] == 0):
-                df.drop(df.tail(1).index, inplace=True)
+        if len(df.index) >= 4:                              # if not ERR do the following of remove last few rows
+            if (df.iloc[-4]['Phase'] != 0):
+                if (df.iloc[-3]['Phase'] == 0):
+                    df.drop(df.tail(3).index, inplace=True)
+                elif (df.iloc[-2]['Phase'] == 0):
+                    df.drop(df.tail(2).index, inplace=True)
+                elif (df.iloc[-1]['Phase'] == 0):
+                    df.drop(df.tail(1).index, inplace=True)
 
-        # remove phase 1 and phase 3
-        df = df[df.Phase != 1]
-        df = df[df.Phase != 3]
+            # remove phase 1 and phase 3
+            df = df[df.Phase != 1]
+            df = df[df.Phase != 3]
 
-        # if phase 2 and phase 4 start not zero, offset it to zero
-        time_offset2 = df.loc[df.Phase == 2]['Time'].values[0]
-        time_offset4 = df.loc[df.Phase == 4]['Time'].values[0]
-        if time_offset2 != 0 or time_offset4 != 0:
-            df.loc[df.Phase == 2, 'Time'] = df.loc[df.Phase == 2, 'Time'] - time_offset2
-            df.loc[df.Phase == 4, 'Time'] = df.loc[df.Phase == 4, 'Time'] - time_offset4
+            # if phase 2 and phase 4 start not zero, offset it to zero
+            time_offset2 = df.loc[df.Phase == 2]['Time'].values[0]
+            time_offset4 = df.loc[df.Phase == 4]['Time'].values[0]
+            if time_offset2 != 0 or time_offset4 != 0:
+                df.loc[df.Phase == 2, 'Time'] = df.loc[df.Phase == 2, 'Time'] - time_offset2
+                df.loc[df.Phase == 4, 'Time'] = df.loc[df.Phase == 4, 'Time'] - time_offset4
 
-        df.insert(0, 'Module', 'M{0:02d}'.format(i+1))
-        df_all = pd.concat([df_all, df])
+            df.insert(0, 'Module', 'M{0:02d}'.format(i+1))
+            df_all = pd.concat([df_all, df])
 
     # creat DCD charts
-    print(f"Create DCD charts: {TEST}_DCD.html")
+    print(f"Create DCD charts: {TEST}_DCD.html ---> ", end='')
     # change phase name
     df_all.loc[df_all.Phase == 0, 'Phase'] = 'DIS0'
     df_all.loc[df_all.Phase == 2, 'Phase'] = 'CHARGE'
@@ -109,7 +110,7 @@ def test_build(TEST):
     # generate charts, seperate by Phase
     fig = px.line(df_all, x='Time', y='Voltage', color='Module', facet_col='Phase', title=TEST+' DCD Chart')
     fig.update_xaxes(tickformat='%M:%S')
-    #fig.show()
+    fig.show()
     fig.write_html(f"{current_path}/{TEST}_DCD.html")
 
     # create bar graph chart of CHR_Wh, DIS_Wh and Ratio_Wh
@@ -126,9 +127,10 @@ def test_build(TEST):
     fig_bar.update_xaxes(title="Module")
     fig_bar.update_yaxes(title='Wh', secondary_y=False)
     fig_bar.update_yaxes(title='DISWh/CHRWh', secondary_y=True, range=[0.5, 1.0])
-    #fig_bar.show()
+    fig_bar.show()
     fig_bar.write_html(f"{current_path}/{TEST}_Wh.html")
 
+    return(TEST_df, df_all)
 
 if __name__ == "__main__":
     TEST = input("Please input TEST number:")

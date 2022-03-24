@@ -7,11 +7,15 @@ import os
 
 import mysql.connector
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+
 
 from IPQC_Rebuild import ipqc_rebuild
 from TEST_Build import test_build
 
-program_version = "22.0314.01"
+VERSION = '22.0321.01'
 
 if __name__ == '__main__':
 
@@ -24,7 +28,7 @@ if __name__ == '__main__':
     mycursor = mydb.cursor()
 
     # input the SN of an RMA battery
-    serial_no = input(f"(Version {program_version})  Please Enter the SN of an RMA battery: ")
+    serial_no = input(f"V{VERSION}, Please Enter the SN of an RMA battery:")
 
     # search the SN_Table to get the IPQC number
     sql = f"SELECT IPQC_No, Mileage, MIS FROM SN_Table WHERE Serial_no = '{serial_no}'"
@@ -46,7 +50,7 @@ if __name__ == '__main__':
         print("TEST number not found! Battery not tested!")
         exit()
 
-    print(f"Battery SN ({serial_no}) = IPQC number ({ipqc_no}) ----- after {mileage} mile and {mis} MIS -----> TEST number ({test_no})")
+    print(f"\nBattery SN ({serial_no}) = IPQC number ({ipqc_no}) ----- after {mileage} mile and {mis} MIS -----> TEST number ({test_no})")
 
     # create SN folder
     os.makedirs(serial_no, exist_ok=True)
@@ -59,9 +63,63 @@ if __name__ == '__main__':
     # Before
 
     # search the Total to get the IPQC data and its original CSV file
-    ipqc_rebuild(ipqc_no)
+    IPQC_df, IPQC_df_all = ipqc_rebuild(ipqc_no)
 
     # After
 
     # serach the Total to get the TEST data and its CSV file
-    test_build(test_no)
+    TEST_df, TEST_df_all = test_build(test_no)
+
+    # make RMA excel file of IPQC and TEST together
+    print(f"\nCreate RMA total table: {serial_no}.xlsx ---> ", end='')
+    output_df = pd.concat([IPQC_df, TEST_df], axis=1)
+    output_df.to_excel(f"{serial_no}.xlsx")
+
+    # change phase name
+    IPQC_df_all.loc[IPQC_df_all.Phase == 'DIS0', 'Phase'] = 'Before_DIS0'
+    IPQC_df_all.loc[IPQC_df_all.Phase == 'CHARGE', 'Phase'] = 'Before_CHARGE'
+    IPQC_df_all.loc[IPQC_df_all.Phase == 'DISCHARGE', 'Phase'] = 'Before_DISCHARGE'
+    TEST_df_all.loc[TEST_df_all.Phase == 'DIS0', 'Phase'] = 'After_DIS0'
+    TEST_df_all.loc[TEST_df_all.Phase == 'CHARGE', 'Phase'] = 'After_CHARGE'
+    TEST_df_all.loc[TEST_df_all.Phase == 'DISCHARGE', 'Phase'] = 'After_DISCHARGE'
+
+    # combine IPQC and TEST df_all dataframes
+    df_allall = pd.concat([IPQC_df_all, TEST_df_all])
+
+    # make RMA DCD chart of both IPQC and TEST together (6 charts)
+    print(f"Create RMA DCD charts: {serial_no}_DCD.html ---> ", end='')
+    # change time to H:MM:SS
+    #df_allall['Time'] = pd.to_datetime(df_allall['Time'], unit='s')
+    # generate charts, seperate by Phase
+    fig = px.line(df_allall, x='Time', y='Voltage', color='Module', facet_col='Phase', title=serial_no+' DCD Chart')
+    fig.update_xaxes(tickformat='%M:%S')
+    fig.show()
+    fig.write_html(f"{serial_no}_DCD.html")
+
+    # make RMA Wh bar chart of both IPQC and TEST together (2 charts)
+    # create bar graph chart of CHR_Wh, DIS_Wh and Ratio_Wh
+    print(f"Create bar graph chart: {serial_no}_Wh.html")
+    fig_bar = make_subplots(rows=2, cols=1, specs=[[{"secondary_y": True}], [{"secondary_y": True}]])
+
+    trace1 = go.Bar(x=IPQC_df['Out_Module'], y=IPQC_df['CHR_Wh'], name='Before_CHR_Wh', marker={'color': 'DodgerBlue'})
+    trace2 = go.Bar(x=IPQC_df['Out_Module'], y=IPQC_df['DIS_Wh'], name='Before_DIS_Wh', marker={'color': 'mediumseagreen'})
+    trace3 = go.Scatter(x=IPQC_df['Out_Module'], y=IPQC_df['Ratio_Wh'],
+                        name='Before_Ratio_Wh', line=dict(color='Red'))
+    fig_bar.add_trace(trace1, row=1, col=1, secondary_y=False)
+    fig_bar.add_trace(trace2, row=1, col=1, secondary_y=False)
+    fig_bar.add_trace(trace3, row=1, col=1, secondary_y=True)
+
+    trace4 = go.Bar(x=TEST_df['Org_Module'], y=TEST_df['CHR_Wh'], name='After_CHR_Wh', marker={'color': 'blue'})
+    trace5 = go.Bar(x=TEST_df['Org_Module'], y=TEST_df['DIS_Wh'], name='After_DIS_Wh', marker={'color': 'green'})
+    trace6 = go.Scatter(x=TEST_df['Org_Module'], y=TEST_df['Ratio_Wh'],
+                        name='After_Ratio_Wh', line=dict(color='orange'))
+    fig_bar.add_trace(trace4, row=2, col=1, secondary_y=False)
+    fig_bar.add_trace(trace5, row=2, col=1, secondary_y=False)
+    fig_bar.add_trace(trace6, row=2, col=1, secondary_y=True)
+
+    fig_bar.update_layout(title=f"{serial_no} Wh")
+    fig_bar.update_xaxes(title="Module")
+    fig_bar.update_yaxes(title='Wh', secondary_y=False)
+    fig_bar.update_yaxes(title='DISWh/CHRWh', secondary_y=True, range=[0.5, 1.0])
+    fig_bar.show()
+    fig_bar.write_html(f"{serial_no}_Wh.html")
