@@ -15,7 +15,7 @@ from plotly.subplots import make_subplots
 from IPQC_Rebuild import ipqc_rebuild
 from TEST_Build import test_build
 
-VERSION = '22.0321.01'
+VERSION = '22.0324.01'
 
 if __name__ == '__main__':
 

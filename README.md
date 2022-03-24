@@ -42,3 +42,7 @@ Date: 2022/03/14
  V22.0321.01
 Date: 2022/03/21
  1. Add DCD comparision chart and Wh comparision chart of both BEFORE and AFTER
+
+ V22.0334.01
+Date: 2022/03/24
+ 1. Fix the bug in Windows directory, need to remove the "/Battery Test Data "

@@ -52,7 +52,7 @@ def ipqc_rebuild(IPQC):
             time.sleep(5)       # sleep 5 second for disk mount
         Tnumber_path = "/Volumes/Battery Test Data/Grading Test/"
     elif platform.system() == 'Windows':    # Windows
-        Tnumber_path = "Z:/Battery Test Data/Grading Test/"
+        Tnumber_path = "Z:/Grading Test/"
 
     # find the orinigal module csv and copy to destination folder
     for i in range(0, len(IPQC_df)):
