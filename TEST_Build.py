@@ -49,9 +49,9 @@ def test_build(TEST):
         if not os.path.exists("/Volumes/Battery Test Data"):
             os.system("open smb://Richard:abcd1234@TBTS-SERVER/'Battery Test Data'")
             time.sleep(5)       # sleep 5 second for disk mount
-        Tnumber_path = "/Volumes/Battery Test Data/Grading Test/"
+        Tnumber_path = "/Volumes/ChiBackup/Grading Test/"
     elif platform.system() == 'Windows':    # Windows
-        Tnumber_path = "Z:/Grading Test/"
+        Tnumber_path = "Z:/ChiBackup/Grading Test/"
 
     # find the orinigal module csv and copy to destination folder
     for i in range(0, len(TEST_df)):

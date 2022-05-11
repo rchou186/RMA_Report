@@ -4,3 +4,5 @@ venv1/
 build/
 dist/
 T*/
+*.csv
+*.xlsx

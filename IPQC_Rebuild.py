@@ -47,12 +47,12 @@ def ipqc_rebuild(IPQC):
 
     # get the correct file Tnumber file path from different os
     if platform.system() == 'Darwin':       # Mac
-        if not os.path.exists("/Volumes/Battery Test Data"):
-            os.system("open smb://Richard:abcd1234@TBTS-SERVER/'Battery Test Data'")
+        if not os.path.exists("/Volumes/ChiBackup"):
+            os.system("open smb://Richard:abcd1234@TBTS-SERVER/'ChiBackup'")
             time.sleep(5)       # sleep 5 second for disk mount
-        Tnumber_path = "/Volumes/Battery Test Data/Grading Test/"
+        Tnumber_path = "/Volumes/ChiBackup/Grading Test/"
     elif platform.system() == 'Windows':    # Windows
-        Tnumber_path = "Z:/Grading Test/"
+        Tnumber_path = "Z:/ChiBackup/Grading Test/"
 
     # find the orinigal module csv and copy to destination folder
     for i in range(0, len(IPQC_df)):
