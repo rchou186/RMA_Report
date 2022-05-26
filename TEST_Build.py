@@ -1,4 +1,3 @@
-
 # This program collects Mxx.CSV from TEST number and draw DCD and Wh charts
 # installed module: pandas, mysql_connector, openpyxl, plotly
 
@@ -49,9 +48,9 @@ def test_build(TEST):
         if not os.path.exists("/Volumes/Battery Test Data"):
             os.system("open smb://Richard:abcd1234@TBTS-SERVER/'Battery Test Data'")
             time.sleep(5)       # sleep 5 second for disk mount
-        Tnumber_path = "/Volumes/ChiBackup/Grading Test/"
+        Tnumber_path = "/Volumes/Battery Test Data/Grading Test/DCD37測試資料(舊)/"
     elif platform.system() == 'Windows':    # Windows
-        Tnumber_path = "Z:/ChiBackup/Grading Test/"
+        Tnumber_path = "Z:/Battery Test Data/Grading Test/DCD37測試資料(舊)/"
 
     # find the orinigal module csv and copy to destination folder
     for i in range(0, len(TEST_df)):
@@ -108,7 +107,15 @@ def test_build(TEST):
     # change time to H:MM:SS
     df_all['Time'] = pd.to_datetime(df_all['Time'], unit='s')
     # generate charts, seperate by Phase
-    fig = px.line(df_all, x='Time', y='Voltage', color='Module', facet_col='Phase', title=TEST+' DCD Chart')
+    color_map = {'M01':'#AA0DFE', 'M02':'#3283FE', 'M03':'#85660D', 'M04':'#782AB6', 'M05':'#565656',
+                 'M06':'#1C8356', 'M07':'#16FF32', 'M08':'#F7E1A0', 'M09':'#E2E2E2', 'M10':'#1CBE4F',
+                 'M11':'#C4451C', 'M12':'#DEA0FD', 'M13':'#FE00FA', 'M14':'#325A9B', 'M15':'#FEAF16', 
+                 'M16':'#F8A19F', 'M17':'#90AD1C', 'M18':'#F6222E', 'M19':'#1CFFCE', 'M20':'#2ED9FF',
+                 'M21':'#B10DA1', 'M22':'#C075A6', 'M23':'#FC1CBF', 'M24':'#B00068', 'M25':'#FBE426',
+                 'M26':'#FA0087', 'M27':'#2E91E5', 'M28':'#222A2A', 'M29':'#B68100', 'M30':'#511CFB',
+                 'M31':'#778AAE', 'M32':'#620042', 'M33':'#FF9616', 'M34':'#00B5F7'
+                } # the color_map is choose from Alphabet and some Dark24, Light23
+    fig = px.line(df_all, x='Time', y='Voltage', color='Module', facet_col='Phase', title=TEST+' DCD Chart', color_discrete_map=color_map)
     fig.update_xaxes(tickformat='%M:%S')
     fig.show()
     fig.write_html(f"{current_path}/{TEST}_DCD.html")

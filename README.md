@@ -53,3 +53,6 @@ V22.0511.01 Date: 2022/05/11
  1. Change the raw data path in /ChiBackup/Grading Test/
  2. Add *.csv and *.xlsx in .gitignore
  3. Change this README.md file into markdown format
+
+V22.0526.01 Date: 2022/05/26
+ 1. Add color_map for DCD curve in IPQC_Rebuild, TEST_Build, and RMA_Report
